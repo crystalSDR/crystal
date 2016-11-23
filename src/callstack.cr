@@ -165,7 +165,7 @@ struct CallStack
     end
   end
 
-  {% if flag?(:darwin) || flag?(:freebsd) || flag?(:linux) || flag?(:openbsd) %}
+  {% if flag?(:darwin) || flag?(:freebsd) || (flag?(:linux) && !flag?(:android)) || flag?(:openbsd) %}
     @@dwarf_line_numbers : Debug::DWARF::LineNumbers?
 
     protected def self.decode_line_number(ip)
