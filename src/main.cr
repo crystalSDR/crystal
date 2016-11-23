@@ -24,6 +24,8 @@ macro redefine_main(name = main)
   end
 end
 
-redefine_main do |main|
-  {{main}}
-end
+{% unless flag?(:android) || flag?(:without_main) %}
+  redefine_main do |main|
+    \{{main}}
+  end
+{% end %}
