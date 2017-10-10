@@ -3,16 +3,18 @@ require "c/string"
 
 lib LibC
   {% if flag?(:linux) %}
-    {% if flag?(:musl) %}
-      fun __errno_location : Int*
-    {% else %}
+    {% if flag?(:android) %}
+      fun errno = __errno : Int*
+    {% elsif flag?(:musl) %}
+      fun errno = __errno_location : Int*
+    {% else %} # gnu
       @[ThreadLocal]
       $errno : Int
     {% end %}
   {% elsif flag?(:darwin) || flag?(:freebsd) %}
-    fun __error : Int*
+    fun errno = __error : Int*
   {% elsif flag?(:openbsd) %}
-    fun __error = __errno : Int*
+    fun errno = __errno : Int*
   {% end %}
 end
 
@@ -219,27 +221,19 @@ class Errno < Exception
 
   # Returns the value of libc's errno.
   def self.value : LibC::Int
-    {% if flag?(:linux) %}
-      {% if flag?(:musl) %}
-        LibC.__errno_location.value
-      {% else %}
-        LibC.errno
-      {% end %}
-    {% elsif flag?(:darwin) || flag?(:freebsd) || flag?(:openbsd) %}
-      LibC.__error.value
+    {% if flag?(:linux) && flag?(:gnu) %}
+      LibC.errno
+    {% else %}
+      LibC.errno.value
     {% end %}
   end
 
   # Sets the value of libc's errno.
   def self.value=(value)
-    {% if flag?(:linux) %}
-      {% if flag?(:musl) %}
-        LibC.__errno_location.value = value
-      {% else %}
-        LibC.errno = value
-      {% end %}
-    {% elsif flag?(:darwin) || flag?(:freebsd) || flag?(:openbsd) %}
-      LibC.__error.value = value
+    {% if flag?(:linux) && flag?(:gnu) %}
+      LibC.errno = value
+    {% else %}
+      LibC.errno.value = value
     {% end %}
   end
 end
